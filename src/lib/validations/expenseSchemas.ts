@@ -1,14 +1,24 @@
 import { z } from 'zod'
 
 const round2 = (n: number) => Math.round(n * 100) / 100
+const validAmountMessage = 'Ingresa un monto valido'
+
+const totalAmountSchema = z
+  .number({ error: validAmountMessage })
+  .finite(validAmountMessage)
+  .positive('El monto debe ser mayor a 0')
+  .transform((n) => round2(n))
+
+const splitAmountSchema = z
+  .number({ error: validAmountMessage })
+  .finite(validAmountMessage)
+  .nonnegative('El monto no puede ser negativo')
+  .transform((n) => round2(n))
 
 export const expenseSchema = z
   .object({
     description: z.string().min(2, 'Agrega una descripcion'),
-    amount: z
-      .number()
-      .positive('El monto debe ser mayor a 0')
-      .transform((n) => round2(n)),
+    amount: totalAmountSchema,
     currency: z.string().min(1, 'Moneda requerida'),
     date: z.string().min(1, 'Ingresa una fecha'),
     paidBy: z.string().min(1, 'Selecciona quien pago'),
@@ -17,10 +27,7 @@ export const expenseSchema = z
     splits: z.array(
       z.object({
         uid: z.string(),
-        amount: z
-          .number()
-          .nonnegative()
-          .transform((n) => round2(n)),
+        amount: splitAmountSchema,
       }),
     ),
   })

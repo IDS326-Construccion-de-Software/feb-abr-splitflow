@@ -12,6 +12,7 @@ import type { UserProfile } from '../../types/user'
 import { logActivity } from '../../features/activity/services/activityService'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import { splitEquallyWithRemainder, formatCurrency } from '../../lib/utils/calculations'
+import { navigateBack } from '../../lib/utils/navigation'
 
 const CreateExpense = () => {
   const { groupId } = useParams<{ groupId: string }>()
@@ -72,7 +73,7 @@ const CreateExpense = () => {
   useEffect(() => {
     if (splitType === 'equal' && participantIds.length > 0 && amount > 0) {
       const splits = splitEquallyWithRemainder(amount, participantIds)
-      setValue('splits', splits, { shouldValidate: false })
+      setValue('splits', splits, { shouldValidate: true })
     }
   }, [splitType, participantIds, amount, setValue])
 
@@ -114,13 +115,13 @@ const CreateExpense = () => {
     else set.add(uid)
     const orderedMembers = members.map((m) => m.uid)
     const nextIds = orderedMembers.filter((id) => set.has(id))
-    setValue('participantIds', nextIds)
+    setValue('participantIds', nextIds, { shouldValidate: true, shouldDirty: true })
 
     // Mantener splits sincronizados en modo personalizado
     if (splitType === 'custom') {
       const currentSplits = getValues('splits') || []
       const nextSplits = nextIds.map((id) => currentSplits.find((s) => s.uid === id) || { uid: id, amount: 0 })
-      setValue('splits', nextSplits, { shouldValidate: false })
+      setValue('splits', nextSplits, { shouldValidate: true, shouldDirty: true })
     }
   }
 
@@ -140,7 +141,7 @@ const CreateExpense = () => {
       <header className="sticky top-0 z-20 bg-white shadow-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack(navigate, groupId ? `/groups/${groupId}` : '/groups')}
             className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100"
             aria-label="Volver"
           >
@@ -204,10 +205,10 @@ const CreateExpense = () => {
 
           <SectionCard title="Dividir entre">
             <div className="grid grid-cols-2 gap-2">
-              <TabButton active={splitType === 'equal'} onClick={() => setValue('splitType', 'equal')}>
+              <TabButton active={splitType === 'equal'} onClick={() => setValue('splitType', 'equal', { shouldValidate: true })}>
                 Igual
               </TabButton>
-              <TabButton active={splitType === 'custom'} onClick={() => setValue('splitType', 'custom')}>
+              <TabButton active={splitType === 'custom'} onClick={() => setValue('splitType', 'custom', { shouldValidate: true })}>
                 Personalizado
               </TabButton>
             </div>
@@ -249,14 +250,28 @@ const CreateExpense = () => {
                           <Controller
                             name={`splits.${idx}.amount` as const}
                             control={control}
-                            render={({ field }) => (
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-right text-xs focus:border-teal-500 focus:outline-none"
-                                {...field}
-                              />
+                            render={({ field, fieldState }) => (
+                              <div className="space-y-1">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-right text-xs focus:border-teal-500 focus:outline-none"
+                                  name={field.name}
+                                  ref={field.ref}
+                                  value={Number.isFinite(field.value) ? field.value : ''}
+                                  onBlur={field.onBlur}
+                                  onChange={(event) => {
+                                    const rawValue = event.target.value
+                                    field.onChange(rawValue === '' ? Number.NaN : Number(rawValue))
+                                  }}
+                                />
+                                {fieldState.error?.message && (
+                                  <p className="w-24 text-right text-[11px] font-medium text-red-500">
+                                    {fieldState.error.message}
+                                  </p>
+                                )}
+                              </div>
                             )}
                           />
                         ) : (
@@ -269,8 +284,8 @@ const CreateExpense = () => {
                   </div>
                 )
               })}
-              {splitType === 'custom' && errors.splits && (
-                <p className="text-xs text-red-500">{errors.splits.message as string}</p>
+              {splitType === 'custom' && getArrayFieldError(errors.splits) && (
+                <p className="text-xs text-red-500">{getArrayFieldError(errors.splits)}</p>
               )}
             </div>
           </SectionCard>
@@ -358,3 +373,11 @@ const BackIcon = () => (
 )
 
 const round2 = (n: number) => Math.round(n * 100) / 100
+
+const getArrayFieldError = (error: unknown): string | undefined => {
+  if (!error || Array.isArray(error) || typeof error !== 'object') return undefined
+  if (!('message' in error)) return undefined
+
+  const message = (error as { message?: unknown }).message
+  return typeof message === 'string' ? message : undefined
+}
