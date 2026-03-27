@@ -9,6 +9,7 @@ import { getUsersByIds } from '../../features/users/services/userService'
 import type { UserProfile } from '../../types/user'
 import type { Expense } from '../../types/expense'
 import type { Settlement } from '../../types/settlement'
+import { navigateBack } from '../../lib/utils/navigation'
 
 const BalancesScreen = () => {
   const { user } = useAuth()
@@ -90,6 +91,10 @@ const BalancesScreen = () => {
 
   const totalOwed = owedToMe.reduce((sum, t) => sum + t.amount, 0)
   const totalIOwe = iOwe.reduce((sum, t) => sum + t.amount, 0)
+  const paymentHistory = useMemo(
+    () => [...userSettlements].sort((a, b) => getSettlementSortValue(b) - getSettlementSortValue(a)),
+    [userSettlements],
+  )
 
   const renderList = (list: UITransfer[], positive: boolean) => {
     if (list.length === 0) {
@@ -141,7 +146,7 @@ const BalancesScreen = () => {
       <div className="bg-gradient-to-r from-teal-500 to-sky-500 text-white shadow-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack(navigate, '/dashboard')}
             className="flex h-10 w-10 items-center justify-center rounded-full text-white/90 transition hover:bg-white/15"
             aria-label="Volver"
           >
@@ -173,6 +178,55 @@ const BalancesScreen = () => {
             <section className="space-y-2">
               <p className="text-sm font-semibold text-slate-800">Debes</p>
               {renderList(iOwe, false)}
+            </section>
+
+            <section className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-800">Historial de pagos</p>
+                <span className="text-xs font-medium text-slate-500">{paymentHistory.length} movimientos</span>
+              </div>
+
+              {paymentHistory.length === 0 && (
+                <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm shadow-slate-200/60">
+                  Aun no has registrado pagos manuales.
+                </div>
+              )}
+
+              {paymentHistory.map((settlement) => {
+                const sentByMe = user ? settlement.fromUserId === user.uid : false
+                const counterpartId = sentByMe ? settlement.toUserId : settlement.fromUserId
+                const person = people[counterpartId]
+                const name = person?.displayName || person?.email || counterpartId
+                const email = person?.email || ''
+                const initial = name.trim().charAt(0).toUpperCase()
+
+                return (
+                  <div
+                    key={settlement.id}
+                    className="flex items-start gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm shadow-slate-200/60"
+                  >
+                    <Avatar initial={initial} tone={sentByMe ? 'pink' : 'teal'} />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">
+                        {sentByMe ? 'Pagaste a' : 'Recibiste de'} {name}
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        {formatSettlementDate(settlement)}
+                        {email ? ` · ${email}` : ''}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {settlement.groupId ? 'Pago registrado dentro de un grupo' : 'Pago manual sin grupo'}
+                      </p>
+                      {settlement.note && <p className="mt-1 text-xs text-slate-600">{settlement.note}</p>}
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-semibold ${sentByMe ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {sentByMe ? '-' : '+'}RD${settlement.amount.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
             </section>
           </>
         )}
@@ -236,5 +290,37 @@ const BackIcon = () => (
     <path d="m15 5-7 7 7 7" />
   </svg>
 )
+
+const getSettlementSortValue = (settlement: Settlement) => {
+  if (settlement.date) {
+    const parsed = Date.parse(`${settlement.date}T00:00:00`)
+    if (!Number.isNaN(parsed)) return parsed
+  }
+
+  return settlement.createdAt?.toDate().getTime() || 0
+}
+
+const formatSettlementDate = (settlement: Settlement) => {
+  if (settlement.date) {
+    const parsed = new Date(`${settlement.date}T00:00:00`)
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('es-DO', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+    }
+  }
+
+  if (settlement.createdAt) {
+    return settlement.createdAt.toDate().toLocaleDateString('es-DO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
+
+  return 'Sin fecha'
+}
 
 export default BalancesScreen
