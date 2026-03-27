@@ -10,6 +10,7 @@ import { useGroupExpenses } from '../../features/expenses/hooks/useGroupExpenses
 import { useAuth } from '../../features/auth/hooks/useAuth'
 import { computeGroupNetBalances } from '../../lib/utils/calculations'
 import { listenGroupSettlements } from '../../features/settlements/services/settlementService'
+import { navigateBack } from '../../lib/utils/navigation'
 
 const GroupDetail = () => {
   const { groupId } = useParams<{ groupId: string }>()
@@ -70,7 +71,7 @@ const GroupDetail = () => {
       <div className="bg-gradient-to-r from-teal-500 to-sky-500 text-white shadow-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack(navigate, '/groups')}
             className="flex h-10 w-10 items-center justify-center rounded-full text-white/90 transition hover:bg-white/15"
             aria-label="Volver"
           >

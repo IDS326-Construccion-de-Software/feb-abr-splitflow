@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/hooks/useAuth'
 import { useGroups } from '../../features/groups/hooks/useGroups'
+import { navigateBack } from '../../lib/utils/navigation'
 
 const GroupList = () => {
   const { user } = useAuth()
@@ -12,7 +13,7 @@ const GroupList = () => {
       <header className="sticky top-0 z-20 border-b border-slate-100 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack(navigate, '/dashboard')}
             className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100"
             aria-label="Volver"
           >

@@ -10,6 +10,7 @@ import { createSettlement } from '../../features/settlements/services/settlement
 import { logActivity } from '../../features/activity/services/activityService'
 import { getUsersByIds } from '../../features/users/services/userService'
 import type { UserProfile } from '../../types/user'
+import { navigateBack } from '../../lib/utils/navigation'
 
 type SettleForm = {
   amount: number
@@ -177,7 +178,7 @@ const SettleUpScreen = () => {
       <header className="sticky top-0 z-20 bg-white shadow-[0_1px_0_rgba(15,23,42,0.06)]">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack(navigate, '/balances')}
             className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100"
             aria-label="Volver"
           >

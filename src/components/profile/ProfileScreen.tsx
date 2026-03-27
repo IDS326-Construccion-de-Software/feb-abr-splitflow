@@ -5,6 +5,7 @@ import { useFriendships } from '../../features/friends/hooks/useFriendships'
 import { useGroups } from '../../features/groups/hooks/useGroups'
 import LoadingSpinner from '../common/LoadingSpinner'
 import { updateUserProfile } from '../../features/users/services/profileService'
+import { navigateBack } from '../../lib/utils/navigation'
 
 const ProfileScreen = () => {
   const { profile, user, loading, logout } = useAuth()
@@ -48,7 +49,7 @@ const ProfileScreen = () => {
       <div className="relative bg-gradient-to-r from-teal-500 to-sky-500 text-white shadow-md">
         <div className="mx-auto flex max-w-5xl items-start justify-between px-4 pt-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigateBack(navigate, '/dashboard')}
             className="flex h-10 w-10 items-center justify-center rounded-full text-white/90 transition hover:bg-white/15"
             aria-label="Volver"
           >
