@@ -32,7 +32,7 @@ const mapExpense = (snap: DocumentSnapshot): Expense => {
     groupId: typeof data?.groupId === 'string' ? data.groupId : '',
     description: data?.description || '',
     amount: toAmount(data?.amount),
-    currency: data?.currency || 'RD$',
+    currency: data?.currency || 'DOP',
     date: data?.date || '',
     paidBy: data?.paidBy || '',
     splitType: (data?.splitType as Expense['splitType']) || 'equal',

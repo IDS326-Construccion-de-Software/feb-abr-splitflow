@@ -28,7 +28,7 @@ const mapSettlement = (snap: DocumentSnapshot): Settlement => {
     fromUserId: data?.fromUserId || '',
     toUserId: data?.toUserId || '',
     amount,
-    currency: data?.currency || 'RD$',
+    currency: data?.currency || 'DOP',
     date: data?.date || '',
     note,
     createdBy: data?.createdBy || '',

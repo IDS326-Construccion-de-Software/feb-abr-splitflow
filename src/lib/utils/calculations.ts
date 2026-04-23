@@ -3,8 +3,34 @@ import type { Settlement } from '../../types/settlement'
 
 // positivo: me deben, negativo: debo
 export type NetBalances = Record<string, number>
+export type SupportedCurrency = 'DOP' | 'USD'
+
+export const DOP_PER_USD = 60
+
+export const normalizeCurrency = (currency?: string | null): SupportedCurrency => {
+  const value = (currency || '').trim().toUpperCase()
+  if (value === 'USD' || value === 'US$' || value === '$') return 'USD'
+  return 'DOP'
+}
+
+export const getCurrencySymbol = (currency?: string | null) =>
+  normalizeCurrency(currency) === 'USD' ? 'US$' : 'RD$'
 
 const round2 = (n: number): number => Math.round(Number(n) * 100) / 100 || 0
+
+export const convertAmount = (
+  amount: number,
+  fromCurrency?: string | null,
+  toCurrency?: string | null,
+): number => {
+  const from = normalizeCurrency(fromCurrency)
+  const to = normalizeCurrency(toCurrency)
+  const value = round2(amount)
+
+  if (from === to) return value
+  if (from === 'DOP' && to === 'USD') return round2(value / DOP_PER_USD)
+  return round2(value * DOP_PER_USD)
+}
 
 const ensureZeros = (balances: NetBalances, ids: string[]) => {
   ids.forEach((uid) => {
@@ -24,6 +50,7 @@ export const calculateGroupBalances = (
   expenses: Expense[],
   settlements: Settlement[],
   memberIds?: string[],
+  targetCurrency: string = 'DOP',
 ): NetBalances => {
   const balances: NetBalances = {}
 
@@ -50,7 +77,7 @@ export const calculateGroupBalances = (
   }
 
   expenses.forEach((expense) => {
-    const total = round2(expense.amount)
+    const total = convertAmount(expense.amount, expense.currency, targetCurrency)
     if (!expense.paidBy || total === 0) return
 
     inc(expense.paidBy, total)
@@ -58,14 +85,14 @@ export const calculateGroupBalances = (
     const splits = Array.isArray(expense.splits) ? expense.splits : []
     splits.forEach((split) => {
       const uid = getSplitUid(split)
-      const share = round2(split.amount)
+      const share = convertAmount(split.amount, expense.currency, targetCurrency)
       if (!uid || share === 0) return
       inc(uid, -share)
     })
   })
 
   settlements.forEach((payment) => {
-    const amount = round2(payment.amount)
+    const amount = convertAmount(payment.amount, payment.currency, targetCurrency)
     if (amount === 0) return
 
     // Quien paga sube su balance porque reduce su deuda.
@@ -82,7 +109,8 @@ export const computeGroupNetBalances = (
   expenses: Expense[],
   settlements: Settlement[],
   memberIds?: string[],
-): NetBalances => calculateGroupBalances(expenses, settlements, memberIds)
+  targetCurrency: string = 'DOP',
+): NetBalances => calculateGroupBalances(expenses, settlements, memberIds, targetCurrency)
 
 export const validateGroupBalances = (net: NetBalances): boolean => {
   const total = Object.values(net).reduce((sum, amount) => sum + amount, 0)
@@ -155,8 +183,8 @@ export const calculateTotalOwedToMe = (balances: Array<{ userId: string; amount:
 export const calculateTotalOwed = (balances: Array<{ userId: string; amount: number }>) =>
   balances.reduce((sum, balance) => (balance.amount < 0 ? round2(sum + Math.abs(balance.amount)) : sum), 0)
 
-export const formatCurrency = (amount: number, currency: string = 'RD$'): string =>
-  `${currency}${Math.abs(round2(amount)).toFixed(2)}`
+export const formatCurrency = (amount: number, currency: string = 'DOP'): string =>
+  `${getCurrencySymbol(currency)}${Math.abs(round2(amount)).toFixed(2)}`
 
 export interface Transfer {
   from: string
