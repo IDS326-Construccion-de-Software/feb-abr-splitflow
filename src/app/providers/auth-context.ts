@@ -9,6 +9,7 @@ export type AuthContextValue = {
   register: (email: string, password: string, displayName: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   loginWithGoogle: () => Promise<void>
+  refreshProfile: () => Promise<UserProfile | null>
   logout: () => Promise<void>
 }
 

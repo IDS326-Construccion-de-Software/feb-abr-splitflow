@@ -1,5 +1,12 @@
 import { FirebaseError } from 'firebase/app'
 
+export const isAuthPopupCancelled = (error: unknown): boolean => {
+  return (
+    error instanceof FirebaseError &&
+    (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request')
+  )
+}
+
 export const friendlyAuthError = (error: unknown): string => {
   if (error instanceof FirebaseError) {
     switch (error.code) {
@@ -19,6 +26,10 @@ export const friendlyAuthError = (error: unknown): string => {
         return 'Dominio no autorizado en Firebase (agrega localhost en Authentication > Settings).'
       case 'auth/network-request-failed':
         return 'Fallo de red. Verifica tu conexión.'
+      case 'auth/too-many-requests':
+        return 'Demasiados intentos. Espera un momento e inténtalo otra vez.'
+      case 'auth/user-not-found':
+        return 'No encontramos una cuenta con ese correo.'
       default:
         return 'No pudimos completar la autenticación. Intenta nuevamente.'
     }

@@ -45,6 +45,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loginWithGoogle: async () => {
         await loginWithGoogle()
       },
+      refreshProfile: async () => {
+        if (!user) {
+          setProfile(null)
+          return null
+        }
+
+        const userProfile = await createOrUpdateUserDocument(user)
+        setProfile(userProfile)
+        return userProfile
+      },
       logout: async () => {
         await logoutService()
       },

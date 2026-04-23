@@ -72,10 +72,14 @@ const RegisterForm = ({ onSuccess, className }: RegisterFormProps) => {
         <input
           id="password"
           type="password"
+          autoComplete="new-password"
           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-teal-500 focus:outline-none"
           placeholder="••••••••"
           {...register('password')}
         />
+        <p className="text-xs leading-5 text-slate-500">
+          Minimo 12 caracteres con mayuscula, minuscula, numero y simbolo. No puede usar tu nombre ni tu correo.
+        </p>
         {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
       </div>
 

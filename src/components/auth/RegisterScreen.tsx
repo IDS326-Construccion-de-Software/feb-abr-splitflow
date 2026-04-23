@@ -1,34 +1,43 @@
 import { Link, useNavigate } from 'react-router-dom'
-import ScreenContainer from '../common/ScreenContainer'
+import AuthScreenShell from './AuthScreenShell'
 import RegisterForm from '../../features/auth/components/RegisterForm'
 
 const RegisterScreen = () => {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-gradient-teal-blue/10">
-      <ScreenContainer
-        className="flex min-h-screen items-center justify-center"
-        title="Crea tu cuenta"
-        subtitle="Configura tu perfil y empieza a dividir gastos en segundos."
-      >
-        <div className="glass-card w-full max-w-md p-6">
-          <div className="mb-6 space-y-1 text-left">
-            <h2 className="text-2xl font-semibold text-slate-900">Regístrate</h2>
-            <p className="text-sm text-slate-600">
-              Usa tu correo para crear un perfil y sincronizar tus gastos.
-            </p>
-          </div>
-          <RegisterForm onSuccess={() => navigate('/dashboard', { replace: true })} />
-          <p className="mt-4 text-center text-sm text-slate-600">
-            ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="font-semibold text-teal-600 hover:underline">
-              Inicia sesión
-            </Link>
-          </p>
-        </div>
-      </ScreenContainer>
-    </div>
+    <AuthScreenShell
+      eyebrow="Nuevo acceso"
+      heroTitle="Crea tu espacio para dividir gastos con menos fricción."
+      heroDescription="Configura tu perfil, arma tus grupos y empieza a registrar movimientos desde una base ordenada."
+      highlights={[
+        {
+          title: 'Perfil listo',
+          description: 'Tu cuenta queda preparada para sincronizar gastos, amigos y grupos.',
+        },
+        {
+          title: 'Todo centralizado',
+          description: 'Pagos, balances y miembros quedan reunidos en un solo flujo.',
+        },
+        {
+          title: 'Sin pasos extra',
+          description: 'Con tu correo basta para empezar y seguir usando la app desde cualquier sesión.',
+        },
+      ]}
+      cardBadge="Registro"
+      cardTitle="Crea tu cuenta"
+      cardDescription="Usa tu correo para crear un perfil y empezar a dividir gastos en segundos."
+      footer={
+        <p className="text-center text-sm text-slate-600">
+          ¿Ya tienes cuenta?{' '}
+          <Link to="/login" className="font-semibold text-teal-600 hover:underline">
+            Inicia sesión
+          </Link>
+        </p>
+      }
+    >
+      <RegisterForm onSuccess={() => navigate('/login', { replace: true, state: { registered: true } })} />
+    </AuthScreenShell>
   )
 }
 

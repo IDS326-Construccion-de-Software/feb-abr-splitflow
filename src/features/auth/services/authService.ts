@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -18,6 +19,9 @@ const mapUserToProfile = (user: User, existing?: Partial<UserProfile>): UserProf
   email: user.email ?? existing?.email ?? '',
   displayName: user.displayName ?? existing?.displayName ?? '',
   photoURL: user.photoURL ?? existing?.photoURL ?? null,
+  phoneNumber: existing?.phoneNumber ?? null,
+  location: existing?.location ?? null,
+  bio: existing?.bio ?? null,
   currency: existing?.currency ?? 'DOP',
   createdAt: (existing?.createdAt as string | null) ?? null,
   updatedAt: new Date().toISOString(),
@@ -27,6 +31,7 @@ export const registerWithEmail = async (email: string, password: string, display
   const { user } = await createUserWithEmailAndPassword(auth, email, password)
   await updateProfile(user, { displayName })
   await createOrUpdateUserDocument(user)
+  await signOut(auth)
   return user
 }
 
@@ -40,6 +45,10 @@ export const loginWithGoogle = async () => {
   const { user } = await signInWithPopup(auth, googleProvider)
   await createOrUpdateUserDocument(user)
   return user
+}
+
+export const requestPasswordReset = async (email: string) => {
+  await sendPasswordResetEmail(auth, email)
 }
 
 export const logout = () => signOut(auth)

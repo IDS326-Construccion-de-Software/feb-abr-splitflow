@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema } from '../../../lib/validations/authSchemas'
 import type { LoginFormValues } from '../../../lib/validations/authSchemas'
 import { useAuth } from '../hooks/useAuth'
 import { cn } from '../../../lib/utils/cn'
-import { friendlyAuthError } from '../../../lib/utils/firebaseErrors'
+import { friendlyAuthError, isAuthPopupCancelled } from '../../../lib/utils/firebaseErrors'
 
 type LoginFormProps = {
   onSuccess?: () => void
@@ -15,6 +16,7 @@ type LoginFormProps = {
 const LoginForm = ({ onSuccess, className }: LoginFormProps) => {
   const { login, loginWithGoogle } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const location = useLocation()
 
   const {
     register,
@@ -42,6 +44,8 @@ const LoginForm = ({ onSuccess, className }: LoginFormProps) => {
       await loginWithGoogle()
       onSuccess?.()
     } catch (err) {
+      if (isAuthPopupCancelled(err)) return
+
       setError(friendlyAuthError(err))
       console.error(err)
     }
@@ -75,6 +79,15 @@ const LoginForm = ({ onSuccess, className }: LoginFormProps) => {
           {...register('password')}
         />
         {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+        <div className="text-right">
+          <Link
+            to="/forgot-password"
+            state={location.state}
+            className="text-xs font-semibold text-teal-600 hover:underline"
+          >
+            ¿Olvidaste tu clave?
+          </Link>
+        </div>
       </div>
 
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
