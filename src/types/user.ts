@@ -6,6 +6,9 @@ export interface UserProfile {
   email: string
   displayName: string
   photoURL?: string | null
+  phoneNumber?: string | null
+  location?: string | null
+  bio?: string | null
   currency?: CurrencyCode
   createdAt?: string | null
   updatedAt?: string | null
