@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   onSnapshot,
@@ -94,4 +95,9 @@ const findExistingFriendship = async (a: string, b: string): Promise<Friendship 
 export const updateFriendshipStatus = async (friendshipId: string, status: FriendshipStatus) => {
   const ref = doc(db, FRIENDSHIPS_COLLECTION, friendshipId)
   await updateDoc(ref, { status, updatedAt: serverTimestamp() })
+}
+
+export const deleteFriendship = async (friendshipId: string) => {
+  const ref = doc(db, FRIENDSHIPS_COLLECTION, friendshipId)
+  await deleteDoc(ref)
 }

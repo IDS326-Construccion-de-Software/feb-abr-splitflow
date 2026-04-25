@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Friendship } from '../../../types/friendship'
-import { subscribeFriendships, updateFriendshipStatus } from '../services/friendService'
+import { deleteFriendship, subscribeFriendships, updateFriendshipStatus } from '../services/friendService'
 import { getUsersByIds } from '../../users/services/userService'
 import type { UserProfile } from '../../../types/user'
 
@@ -40,5 +40,10 @@ export const useFriendships = (userId?: string) => {
     [],
   )
 
-  return { friendships: items, loading, accept }
+  const remove = useMemo(
+    () => (friendshipId: string) => deleteFriendship(friendshipId),
+    [],
+  )
+
+  return { friendships: items, loading, accept, remove }
 }
